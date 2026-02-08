@@ -1,0 +1,237 @@
+# index.html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Immersive Slides</title>
+  <meta name="description" content="Immersive slide-style website with language switch, sticky overlay and right-side chat buttons." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <!-- Top Header (sticky) -->
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <a class="brand" href="#home" aria-label="Go to home">
+        <span class="brand-mark">◎</span>
+        <span class="brand-name" data-i18n="brand">BRAND</span>
+      </a>
+
+      <nav class="nav" aria-label="Primary">
+        <a class="nav-link" href="#home" data-i18n="nav_home">Home</a>
+        <a class="nav-link" href="#ads" data-i18n="nav_ads">Ads</a>
+
+        <div class="lang">
+          <button class="lang-btn" type="button" id="langBtn" aria-haspopup="listbox" aria-expanded="false">
+            <span data-i18n="nav_lang">Language</span>
+            <span class="lang-pill" id="langPill">EN</span>
+          </button>
+          <div class="lang-menu" id="langMenu" role="listbox" aria-label="Language">
+            <button class="lang-item" type="button" data-lang="en" role="option" aria-selected="true">English</button>
+            <button class="lang-item" type="button" data-lang="zh" role="option" aria-selected="false">中文</button>
+          </div>
+        </div>
+
+        <a class="nav-link nav-login" href="#login" data-i18n="nav_login">Login</a>
+
+        <button class="hamburger" id="hamburger" type="button" aria-label="Open menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Mobile dropdown -->
+    <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+      <a class="mobile-link" href="#home" data-i18n="nav_home">Home</a>
+      <a class="mobile-link" href="#ads" data-i18n="nav_ads">Ads</a>
+      <div class="mobile-lang">
+        <div class="mobile-lang-title" data-i18n="nav_lang">Language</div>
+        <div class="mobile-lang-actions">
+          <button type="button" class="mobile-lang-btn" data-lang="en">EN</button>
+          <button type="button" class="mobile-lang-btn" data-lang="zh">中文</button>
+        </div>
+      </div>
+      <a class="mobile-link" href="#login" data-i18n="nav_login">Login</a>
+    </div>
+  </header>
+
+  <!-- Right side floating buttons -->
+  <aside class="float-right" aria-label="Contact shortcuts">
+    <a class="float-btn" href="https://wa.me/00000000000" target="_blank" rel="noreferrer" aria-label="WhatsApp">
+      <span class="float-icon">WA</span>
+      <span class="float-tip">WhatsApp</span>
+    </a>
+    <a class="float-btn" href="https://t.me/your_channel_or_bot" target="_blank" rel="noreferrer" aria-label="Telegram">
+      <span class="float-icon">TG</span>
+      <span class="float-tip">Telegram</span>
+    </a>
+  </aside>
+
+  <!-- Sticky bottom-center overlay (appears after hero title area) -->
+  <div class="sticky-overlay" id="stickyOverlay" aria-live="polite">
+    <div class="overlay-inner">
+      <div class="overlay-left">
+        <div class="overlay-title" data-i18n="overlay_title">Explore</div>
+        <div class="overlay-sub" id="overlaySub" data-i18n="overlay_sub">Scroll to discover</div>
+      </div>
+      <div class="overlay-right">
+        <div class="overlay-progress" aria-label="Slide progress">
+          <span id="slideIndex">01</span>
+          <span class="overlay-split">/</span>
+          <span id="slideTotal">05</span>
+        </div>
+        <button class="overlay-cta" id="ctaBtn" type="button" data-i18n="overlay_cta">Contact</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="site-main" id="home">
+    <!-- HERO -->
+    <section class="hero" id="hero" data-bg="assets/hero.jpg">
+      <div class="hero-grid">
+        <!-- left visual area (keeps right whitespace feeling by limiting max width) -->
+        <div class="hero-copy">
+          <h1 class="hero-title" data-i18n="hero_title">A Quiet Luxury Story</h1>
+          <p class="hero-subtitle" data-i18n="hero_subtitle">
+            Immersive slides. Precise typography. More breathing room on the right.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#slides" data-i18n="hero_primary">Enter</a>
+            <a class="btn btn-ghost" href="#ads" data-i18n="hero_secondary">View Ads</a>
+          </div>
+        </div>
+
+        <!-- right whitespace column (intentionally empty) -->
+        <div class="hero-whitespace" aria-hidden="true"></div>
+      </div>
+
+      <div class="hero-hint">
+        <span class="hint-dot"></span>
+        <span data-i18n="hero_hint">Scroll</span>
+      </div>
+    </section>
+
+    <!-- ADS anchor (can be a slide or a normal section; here as a small strip before slides) -->
+    <section class="ads-strip" id="ads">
+      <div class="ads-inner">
+        <div class="ads-title" data-i18n="ads_title">Ads</div>
+        <div class="ads-desc" data-i18n="ads_desc">
+          Put your campaign highlights here (or jump to a specific slide).
+        </div>
+        <a class="ads-link" href="#slides" data-i18n="ads_cta">Go to Slides →</a>
+      </div>
+    </section>
+
+    <!-- SLIDES (3–8 screens, scroll-snap) -->
+    <section class="slides-wrap" id="slides" aria-label="Slides">
+      <div class="slides" id="slidesContainer">
+        <!-- Slide 1 -->
+        <section class="slide" data-bg="assets/01.jpg" data-overlay-sub-en="Look 01 — Minimal Lines" data-overlay-sub-zh="第 01 幕 — 极简线条">
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <div class="slide-kicker" data-i18n="slide_kicker">Collection</div>
+              <h2 class="slide-title" data-i18n="s1_title">The First Frame</h2>
+              <p class="slide-text" data-i18n="s1_text">Your image tells the story. Text stays calm.</p>
+            </div>
+            <div class="slide-whitespace" aria-hidden="true"></div>
+          </div>
+        </section>
+
+        <!-- Slide 2 -->
+        <section class="slide" data-bg="assets/02.jpg" data-overlay-sub-en="Look 02 — Texture & Light" data-overlay-sub-zh="第 02 幕 — 质感与光影">
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2 class="slide-title" data-i18n="s2_title">Breathing Space</h2>
+              <p class="slide-text" data-i18n="s2_text">Right-side whitespace makes everything feel expensive.</p>
+            </div>
+            <div class="slide-whitespace" aria-hidden="true"></div>
+          </div>
+        </section>
+
+        <!-- Slide 3 -->
+        <section class="slide" data-bg="assets/03.jpg" data-overlay-sub-en="Look 03 — Quiet Bold" data-overlay-sub-zh="第 03 幕 — 安静的张力">
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2 class="slide-title" data-i18n="s3_title">One Scroll, One Scene</h2>
+              <p class="slide-text" data-i18n="s3_text">Scroll-snap gives that immersive “slide” feeling.</p>
+            </div>
+            <div class="slide-whitespace" aria-hidden="true"></div>
+          </div>
+        </section>
+
+        <!-- Slide 4 (optional) -->
+        <section class="slide" data-bg="assets/04.jpg" data-overlay-sub-en="Look 04 — Details" data-overlay-sub-zh="第 04 幕 — 细节">
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2 class="slide-title" data-i18n="s4_title">Details Matter</h2>
+              <p class="slide-text" data-i18n="s4_text">Keep motion subtle: fade + slight lift.</p>
+            </div>
+            <div class="slide-whitespace" aria-hidden="true"></div>
+          </div>
+        </section>
+
+        <!-- Slide 5 (optional) -->
+        <section class="slide" data-bg="assets/05.jpg" data-overlay-sub-en="Look 05 — Finish" data-overlay-sub-zh="第 05 幕 — 收尾">
+          <div class="slide-grid">
+            <div class="slide-copy">
+              <h2 class="slide-title" data-i18n="s5_title">Ready for Your Images</h2>
+              <p class="slide-text" data-i18n="s5_text">Duplicate/remove slides to make 3–8 screens.</p>
+            </div>
+            <div class="slide-whitespace" aria-hidden="true"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- LOGIN placeholder section -->
+    <section class="login-strip" id="login">
+      <div class="login-inner">
+        <h3 class="login-title" data-i18n="login_title">Login</h3>
+        <p class="login-desc" data-i18n="login_desc">
+          Placeholder area for your login modal/page.
+        </p>
+        <button class="btn btn-primary" type="button" data-i18n="login_btn">Open Login</button>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="site-footer" role="contentinfo">
+      <div class="footer-inner">
+        <div class="footer-col">
+          <div class="footer-head" data-i18n="footer_brand">BRAND</div>
+          <div class="footer-text" data-i18n="footer_desc">
+            A clean, immersive slide experience. Replace images and copy.
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <div class="footer-head" data-i18n="footer_about">About</div>
+          <a class="footer-link" href="#home" data-i18n="footer_home">Home</a>
+          <a class="footer-link" href="#ads" data-i18n="footer_ads">Ads</a>
+          <a class="footer-link" href="#login" data-i18n="footer_login">Login</a>
+        </div>
+
+        <div class="footer-col">
+          <div class="footer-head" data-i18n="footer_legal">Legal</div>
+          <a class="footer-link" href="#!" data-i18n="footer_privacy">Privacy</a>
+          <a class="footer-link" href="#!" data-i18n="footer_terms">Terms</a>
+        </div>
+
+        <div class="footer-col">
+          <div class="footer-head" data-i18n="footer_contact">Contact</div>
+          <a class="footer-link" href="mailto:hello@example.com">hello@example.com</a>
+          <div class="footer-mini" data-i18n="footer_note">Buttons on the right go to WhatsApp/Telegram.</div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© <span id="year"></span> <span data-i18n="footer_copyright">All rights reserved.</span></span>
+      </div>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

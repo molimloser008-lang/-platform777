@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Detail</title>
+
+  <link rel="stylesheet" href="./styles.css" />
+
+  <style>
+    html, body { height: 100%; }
+    body { margin:0; overflow:hidden; background:#0b0b0b; color:#fff; }
+
+    :root{
+      --header-h: 64px;
+      --glass: rgba(255,255,255,.08);
+      --glass-border: rgba(255,255,255,.16);
+    }
+
+    /* 顶部栏 */
+    .sp-topbar{
+      height: var(--header-h);
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      padding: 0 18px;
+      position: fixed;
+      top:0; left:0; right:0;
+      z-index: 50;
+      background: linear-gradient(to bottom, rgba(0,0,0,.55), rgba(0,0,0,.10));
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .sp-left, .sp-right{ display:flex; align-items:center; gap: 10px; }
+    .sp-link{
+      color:#fff;
+      text-decoration:none;
+      opacity:.9;
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+    }
+    .sp-link:hover{ opacity: 1; background: rgba(255,255,255,.10); }
+
+    .sp-lang{
+      display:flex; gap:8px; align-items:center;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.20);
+      background: rgba(0,0,0,.18);
+    }
+    .sp-lang button{
+      border:0; cursor:pointer;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: transparent;
+      color:#fff;
+      opacity: .85;
+      font-size: 12px;
+    }
+    .sp-lang button.active{
+      background: rgba(255,255,255,.16);
+      opacity: 1;
+    }
+
+    /* 右侧 WA/TG 浮标 */
+    .sp-float-right{
+      position: fixed;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .sp-float-btn{
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      text-decoration: none;
+      color: #fff;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(10px);
+      position: relative;
+    }
+    .sp-float-btn span{
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: .6px;
+    }
+    .sp-float-btn:hover{ background: rgba(255,255,255,.10); }
+    .sp-float-tip{
+      position:absolute;
+      right: 56px;
+      white-space: nowrap;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.16);
+      opacity: 0;
+      transform: translateX(6px);
+      transition: .18s ease;
+      pointer-events: none;
+      font-size: 12px;
+    }
+    .sp-float-btn:hover .sp-float-tip{
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* 主体：一屏背景 + 内容卡片 */
+    .sp-shell{
+      height: 100vh;
+      padding-top: var(--header-h);
+      position: relative;
+      overflow: hidden;
+    }
+    .sp-shell::before{
+      content:"";
+      position:absolute; inset:0;
+      background-image: var(--bg, url("assets/login-bg.jpg"));
+      background-size: cover;
+      background-position: center;
+      transform: scale(1.03);
+      filter: saturate(1.05) contrast(1.02);
+      z-index: 0;
+    }
+    .sp-shell::after{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(circle at 30% 30%, rgba(0,0,0,.30), rgba(0,0,0,.74));
+      z-index: 1;
+    }
+
+    .sp-content{
+      position: relative;
+      z-index: 2;
+      height: calc(100vh - var(--header-h));
+      display: grid;
+      place-items: center;
+      padding: 14px;
+    }
+
+    .sp-card{
+      width: min(860px, 92vw);
+      max-height: 100%;
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+      display: grid;
+      grid-template-rows: auto auto auto 1fr;
+      gap: 10px;
+    }
+
+    .sp-title{
+      margin:0;
+      font-size: 26px;
+      letter-spacing: .3px;
+      line-height: 1.2;
+    }
+    .sp-subtitle{
+      margin:0;
+      font-size: 14px;
+      opacity: .86;
+      line-height: 1.5;
+    }
+
+    /* 媒体区：1个（图/视频二选一，默认图） */
+    .sp-media{
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.25);
+      min-height: 140px;
+    }
+    .sp-media img, .sp-media video{
+      width: 100%;
+      height: 100%;
+      display:block;
+      object-fit: cover;
+    }
+
+    /* 正文：如果太长，只让正文内部滚动，整页仍不滚 */
+    .sp-body{
+      overflow: auto;
+      padding-right: 6px;
+      line-height: 1.7;
+      font-size: 14px;
+      opacity: .9;
+    }
+    .sp-body::-webkit-scrollbar{ width: 8px; }
+    .sp-body::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.16); border-radius: 999px; }
+
+    @media (max-width: 520px){
+      .sp-topbar{ padding: 0 12px; }
+      .sp-link{ padding: 8px 10px; }
+      .sp-float-right{ right: 10px; }
+      .sp-float-btn{ width: 44px; height: 44px; border-radius: 14px; }
+      .sp-title{ font-size: 22px; }
+      .sp-media{ min-height: 120px; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 顶部 -->
+  <header class="sp-topbar">
+    <div class="sp-left">
+      <a class="sp-link" href="./index.html" id="btnHome">Home</a>
+      <a class="sp-link" href="./login.html" id="btnLogin">Login</a>
+    </div>
+
+    <div class="sp-right">
+      <div class="sp-lang" role="group" aria-label="Language switch">
+        <button id="btnEN" type="button">EN</button>
+        <button id="btnZH" type="button">中文</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 右侧浮标 -->
+  <aside class="sp-float-right" aria-label="Contact shortcuts">
+    <a class="sp-float-btn" href="https://wa.me/00000000000" target="_blank" rel="noreferrer" aria-label="WhatsApp">
+      <span>WA</span>
+      <div class="sp-float-tip">WhatsApp</div>
+    </a>
+    <a class="sp-float-btn" href="https://t.me/your_channel_or_bot" target="_blank" rel="noreferrer" aria-label="Telegram">
+      <span>TG</span>
+      <div class="sp-float-tip">Telegram</div>
+    </a>
+  </aside>
+
+  <!-- 主体 -->
+  <main class="sp-shell" id="shell">
+    <div class="sp-content">
+      <section class="sp-card" aria-label="Article">
+        <h1 class="sp-title" id="title">Title</h1>
+        <p class="sp-subtitle" id="subtitle">Subtitle</p>
+
+        <!-- 媒体内容 *1：默认用图片，你也可改成 video -->
+        <div class="sp-media" id="mediaBox">
+          <img id="mediaImg" src="assets/carousel-1.jpg" alt="media" />
+        </div>
+
+        <div class="sp-body" id="bodyText">
+          ...
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    /* ========= 语言同步：沿用 localStorage.lang = en|zh ========= */
+    const I18N = {
+      en: {
+        home: "Home",
+        login: "Login",
+        // 每个子页（c=1..4）的文案你可随时替换
+        slides: [
+          {
+            title: "Slide 01 Title",
+            subtitle: "A short subtitle for slide 01.",
+            body: "This is the main content for slide 01. Replace this paragraph with your real copy."
+          },
+          {
+            title: "Slide 02 Title",
+            subtitle: "A short subtitle for slide 02.",
+            body: "This is the main content for slide 02. Replace this paragraph with your real copy."
+          },
+          {
+            title: "Slide 03 Title",
+            subtitle: "A short subtitle for slide 03.",
+            body: "This is the main content for slide 03. Replace this paragraph with your real copy."
+          },
+          {
+            title: "Slide 04 Title",
+            subtitle: "A short subtitle for slide 04.",
+            body: "This is the main content for slide 04. Replace this paragraph with your real copy."
+          }
+        ]
+      },
+      zh: {
+        home: "主页",
+        login: "登录",
+        slides: [
+          {
+            title: "轮播 01 标题",
+            subtitle: "轮播 01 的一句副标题。",
+            body: "这里是轮播 01 的正文内容。你可以把这段替换成真实文案。"
+          },
+          {
+            title: "轮播 02 标题",
+            subtitle: "轮播 02 的一句副标题。",
+            body: "这里是轮播 02 的正文内容。你可以把这段替换成真实文案。"
+          },
+          {
+            title: "轮播 03 标题",
+            subtitle: "轮播 03 的一句副标题。",
+            body: "这里是轮播 03 的正文内容。你可以把这段替换成真实文案。"
+          },
+          {
+            title: "轮播 04 标题",
+            subtitle: "轮播 04 的一句副标题。",
+            body: "这里是轮播 04 的正文内容。你可以把这段替换成真实文案。"
+          }
+        ]
+      }
+    };
+
+    function getLang(){
+      const v = localStorage.getItem("lang");
+      return (v === "zh" || v === "en") ? v : "en";
+    }
+    function setLang(lang){
+      if (!I18N[lang]) return;
+      localStorage.setItem("lang", lang);
+      document.documentElement.lang = (lang === "zh") ? "zh-CN" : "en";
+      document.getElementById("btnEN").classList.toggle("active", lang === "en");
+      document.getElementById("btnZH").classList.toggle("active", lang === "zh");
+
+      // 顶部按钮文案
+      document.getElementById("btnHome").textContent = I18N[lang].home;
+      document.getElementById("btnLogin").textContent = I18N[lang].login;
+
+      // 内容文案
+      const idx = getSlideIndex();
+      const slide = I18N[lang].slides[idx];
+      document.getElementById("title").textContent = slide.title;
+      document.getElementById("subtitle").textContent = slide.subtitle;
+      document.getElementById("bodyText").textContent = slide.body;
+
+      document.title = slide.title;
+    }
+
+    document.getElementById("btnEN").addEventListener("click", () => setLang("en"));
+    document.getElementById("btnZH").addEventListener("click", () => setLang("zh"));
+
+    /* ========= 根据 ?c=1..4 选择内容 + 背景/媒体 ========= */
+    function getSlideIndex(){
+      const p = new URLSearchParams(location.search);
+      const c = Number(p.get("c") || "1");
+      return Math.min(Math.max(c, 1), 4) - 1;
+    }
+
+    const idx = getSlideIndex();
+
+    // 背景图：使用对应轮播图
+    const bgMap = [
+      'url("assets/carousel-1.jpg")',
+      'url("assets/carousel-2.jpg")',
+      'url("assets/carousel-3.jpg")',
+      'url("assets/carousel-4.jpg")'
+    ];
+    document.getElementById("shell").style.setProperty("--bg", bgMap[idx]);
+
+    // 媒体内容*1：默认也用对应轮播图（你也可以换成独立 media-1.jpg 等）
+    const img = document.getElementById("mediaImg");
+    img.src = `assets/carousel-${idx + 1}.jpg`;
+    img.alt = `media ${idx + 1}`;
+
+    // 初始化语言
+    setLang(getLang());
+  </script>
+</body>
+</html>

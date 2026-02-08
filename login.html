@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title data-i18n-page="title">Login</title>
+
+  <link rel="stylesheet" href="./styles.css" />
+
+  <style>
+    /* ====== 页面保证“一屏内”，不滚动 ====== */
+    html, body { height: 100%; }
+    body { margin: 0; overflow: hidden; }
+
+    :root{
+      --header-h: 64px; /* 让它和你 styles.css 里一致，避免顶栏遮挡 */
+      --carousel-h: 18vh; /* 15-20% 之间：这里取 18% */
+      --glass: rgba(255,255,255,.08);
+      --glass-border: rgba(255,255,255,.16);
+    }
+
+    /* ====== 顶部简洁栏（含语言切换） ====== */
+    .lp-topbar{
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 50;
+      background: linear-gradient(to bottom, rgba(0,0,0,.55), rgba(0,0,0,.08));
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .lp-brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      opacity: .95;
+      text-decoration: none;
+      color: #fff;
+    }
+    .lp-brand .dot{
+      width: 22px; height: 22px;
+      display:grid; place-items:center;
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 999px;
+      font-size: 12px;
+    }
+    .lp-actions{
+      display:flex; align-items:center; gap:10px;
+    }
+    .lp-lang{
+      display:flex; gap:8px; align-items:center;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.20);
+      background: rgba(0,0,0,.20);
+    }
+    .lp-lang button{
+      border:0; cursor:pointer;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: transparent;
+      color:#fff;
+      opacity: .85;
+      font-size: 12px;
+    }
+    .lp-lang button.active{
+      background: rgba(255,255,255,.16);
+      opacity: 1;
+    }
+    .lp-back{
+      border: 1px solid rgba(255,255,255,.20);
+      background: rgba(255,255,255,.08);
+      padding: 8px 12px;
+      border-radius: 12px;
+      color:#fff;
+      text-decoration:none;
+      font-size: 13px;
+      opacity: .9;
+    }
+    .lp-back:hover{ opacity: 1; }
+
+    /* ====== 右侧 WA/TG（复用你 styles.css 的 float-right 也可以，这里独立一份防止未来改动冲突） ====== */
+    .lp-float-right{
+      position: fixed;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .lp-float-btn{
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      text-decoration: none;
+      color: #fff;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(10px);
+      position: relative;
+    }
+    .lp-float-btn span{
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: .6px;
+    }
+    .lp-float-btn:hover{ background: rgba(255,255,255,.10); }
+    .lp-float-tip{
+      position:absolute;
+      right: 56px;
+      white-space: nowrap;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.16);
+      opacity: 0;
+      transform: translateX(6px);
+      transition: .18s ease;
+      pointer-events: none;
+      font-size: 12px;
+    }
+    .lp-float-btn:hover .lp-float-tip{
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* ====== 页面主框架：轮播 + 背景登录区（不滚动） ====== */
+    .lp-shell{
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding-top: var(--header-h);
+    }
+
+    /* 顶部轮播：15-20% */
+    .lp-carousel{
+      height: var(--carousel-h);
+      min-height: 110px;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: #111;
+    }
+    .lp-carousel-track{
+      height: 100%;
+      display: flex;
+      transition: transform .45s ease;
+    }
+    .lp-slide{
+      width: 100%;
+      flex: 0 0 100%;
+      position: relative;
+      cursor: pointer;
+    }
+    .lp-slide::before{
+      content:"";
+      position:absolute; inset:0;
+      background-image: var(--bg);
+      background-size: cover;
+      background-position: center;
+      transform: scale(1.02);
+      filter: saturate(1.05) contrast(1.02);
+    }
+    .lp-slide::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(90deg, rgba(0,0,0,.55), rgba(0,0,0,.15));
+    }
+    .lp-slide-label{
+      position:absolute;
+      left: 16px;
+      bottom: 12px;
+      z-index: 2;
+      padding: 8px 10px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.16);
+      backdrop-filter: blur(10px);
+      font-size: 12px;
+      opacity: .95;
+    }
+
+    .lp-dots{
+      position:absolute;
+      right: 14px;
+      bottom: 12px;
+      display:flex;
+      gap: 8px;
+      z-index: 3;
+    }
+    .lp-dot{
+      width: 8px; height: 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.55);
+      background: rgba(255,255,255,.12);
+      cursor: pointer;
+      opacity: .9;
+    }
+    .lp-dot.active{ background: rgba(255,255,255,.75); }
+
+    /* 背景登录区：剩余所有高度 */
+    .lp-main{
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #0b0b0b;
+      display: grid;
+      place-items: center;
+      padding: 14px;
+    }
+    .lp-main::before{
+      content:"";
+      position:absolute; inset:0;
+      background-image: url("assets/login-bg.jpg"); /* ✅ 换成你的背景图 */
+      background-size: cover;
+      background-position: center;
+      filter: saturate(1.05) contrast(1.02);
+      transform: scale(1.02);
+      z-index: 0;
+    }
+    .lp-main::after{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(circle at 30% 30%, rgba(0,0,0,.35), rgba(0,0,0,.70));
+      z-index: 1;
+    }
+
+    /* 登录卡片：居中 */
+    .lp-card{
+      width: min(520px, 92vw);
+      z-index: 2;
+      border-radius: 18px;
+      padding: 22px 18px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+    }
+    .lp-title{
+      margin: 0 0 8px 0;
+      font-size: 22px;
+      letter-spacing: .4px;
+    }
+    .lp-desc{
+      margin: 0 0 14px 0;
+      opacity: .85;
+      line-height: 1.5;
+      font-size: 13px;
+    }
+    .lp-field{ margin: 12px 0; }
+    .lp-label{ display:block; margin-bottom: 8px; opacity:.9; font-size: 13px; }
+    .lp-input{
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.25);
+      color: #fff;
+      outline: none;
+      font-size: 14px;
+    }
+    .lp-row{ display:flex; gap: 10px; align-items:center; margin-top: 10px; }
+    .lp-btn{
+      border:0; cursor:pointer;
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-weight: 700;
+      color: #fff;
+      background: rgba(255,255,255,.14);
+      font-size: 13px;
+      flex: 1;
+    }
+    .lp-btn.primary{ background: rgba(66,133,244,.78); }
+    .lp-btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+    .lp-msg{ margin-top: 10px; min-height: 22px; font-size: 13px; opacity:.92; }
+    .lp-msg.error{ color: #ffb4b4; }
+    .lp-msg.ok{ color: #bfffd1; }
+
+    /* 手机端适配：右侧按钮下移，轮播略高一点 */
+    @media (max-width: 520px){
+      :root{ --carousel-h: 20vh; }
+      .lp-float-right{ right: 10px; }
+      .lp-float-btn{ width: 44px; height: 44px; border-radius: 14px; }
+      .lp-topbar{ padding: 0 12px; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 顶部栏 -->
+  <header class="lp-topbar">
+    <a class="lp-brand" href="./index.html" aria-label="Back to home">
+      <span class="dot">◎</span>
+      <span data-i18n-page="brand">BRAND</span>
+    </a>
+
+    <div class="lp-actions">
+      <!-- 语言同步：读取/写入 localStorage.lang（与主页一致） -->
+      <div class="lp-lang" role="group" aria-label="Language switch">
+        <button id="btnEN" type="button">EN</button>
+        <button id="btnZH" type="button">中文</button>
+      </div>
+      <a class="lp-back" href="./index.html" data-i18n-page="back">Home</a>
+    </div>
+  </header>
+
+  <!-- 右侧跳转 -->
+  <aside class="lp-float-right" aria-label="Contact shortcuts">
+    <a class="lp-float-btn" href="https://wa.me/00000000000" target="_blank" rel="noreferrer" aria-label="WhatsApp">
+      <span>WA</span>
+      <div class="lp-float-tip">WhatsApp</div>
+    </a>
+    <a class="lp-float-btn" href="https://t.me/your_channel_or_bot" target="_blank" rel="noreferrer" aria-label="Telegram">
+      <span>TG</span>
+      <div class="lp-float-tip">Telegram</div>
+    </a>
+  </aside>
+
+  <div class="lp-shell">
+    <!-- 顶部轮播（点击跳子页面 subpage.html） -->
+    <section class="lp-carousel" aria-label="Carousel">
+      <div class="lp-carousel-track" id="track">
+        <div class="lp-slide" data-index="0" style='--bg:url("assets/carousel-1.jpg")'>
+          <div class="lp-slide-label" data-i18n-page="c1">Slide 01 →</div>
+        </div>
+        <div class="lp-slide" data-index="1" style='--bg:url("assets/carousel-2.jpg")'>
+          <div class="lp-slide-label" data-i18n-page="c2">Slide 02 →</div>
+        </div>
+        <div class="lp-slide" data-index="2" style='--bg:url("assets/carousel-3.jpg")'>
+          <div class="lp-slide-label" data-i18n-page="c3">Slide 03 →</div>
+        </div>
+        <div class="lp-slide" data-index="3" style='--bg:url("assets/carousel-4.jpg")'>
+          <div class="lp-slide-label" data-i18n-page="c4">Slide 04 →</div>
+        </div>
+      </div>
+
+      <div class="lp-dots" id="dots" aria-label="Carousel indicators"></div>
+    </section>
+
+    <!-- 背景登录区（不滚动） -->
+    <main class="lp-main" aria-label="Login area">
+      <div class="lp-card">
+        <h1 class="lp-title" data-i18n-page="login_title">Login</h1>
+        <p class="lp-desc" data-i18n-page="login_desc">
+          Use the temporary username & password issued by the Telegram bot.
+        </p>
+
+        <form id="loginForm">
+          <div class="lp-field">
+            <label class="lp-label" for="username" data-i18n-page="u_label">Username</label>
+            <input class="lp-input" id="username" name="username" autocomplete="username" required />
+          </div>
+
+          <div class="lp-field">
+            <label class="lp-label" for="password" data-i18n-page="p_label">Password</label>
+            <input class="lp-input" id="password" name="password" type="password" autocomplete="current-password" required />
+          </div>
+
+          <div class="lp-row">
+            <button class="lp-btn primary" id="btnLogin" type="submit" data-i18n-page="btn_login">Login</button>
+            <button class="lp-btn" id="btnClear" type="button" data-i18n-page="btn_clear">Clear</button>
+          </div>
+
+          <div id="msg" class="lp-msg"></div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    /* =========================
+      1) 语言同步（与主页一致：localStorage.lang = en|zh）
+    ========================= */
+    const PAGE_I18N = {
+      en: {
+        title: "Login",
+        brand: "BRAND",
+        back: "Home",
+        c1: "Slide 01 →",
+        c2: "Slide 02 →",
+        c3: "Slide 03 →",
+        c4: "Slide 04 →",
+        login_title: "Login",
+        login_desc: "Use the temporary username & password issued by the Telegram bot.",
+        u_label: "Username",
+        p_label: "Password",
+        btn_login: "Login",
+        btn_clear: "Clear",
+        msg_need: "Please enter username and password.",
+        msg_ok: "Login success. Redirecting…",
+        msg_fail: "Login failed: ",
+        msg_net: "Network/API error: "
+      },
+      zh: {
+        title: "登录",
+        brand: "品牌",
+        back: "主页",
+        c1: "轮播 01 →",
+        c2: "轮播 02 →",
+        c3: "轮播 03 →",
+        c4: "轮播 04 →",
+        login_title: "登录",
+        login_desc: "请输入 Telegram 机器人发放的临时用户名与密码。",
+        u_label: "用户名",
+        p_label: "密码",
+        btn_login: "登录",
+        btn_clear: "清空",
+        msg_need: "请输入用户名与密码。",
+        msg_ok: "登录成功，正在跳转…",
+        msg_fail: "登录失败：",
+        msg_net: "网络/API 异常："
+      }
+    };
+
+    function getLang(){
+      const saved = localStorage.getItem("lang");
+      return (saved === "zh" || saved === "en") ? saved : "en";
+    }
+    function setLang(lang){
+      if (!PAGE_I18N[lang]) return;
+      localStorage.setItem("lang", lang);
+      document.documentElement.lang = (lang === "zh") ? "zh-CN" : "en";
+
+      document.querySelectorAll("[data-i18n-page]").forEach(el => {
+        const k = el.getAttribute("data-i18n-page");
+        if (k && PAGE_I18N[lang][k] != null) el.textContent = PAGE_I18N[lang][k];
+      });
+
+      // 标题
+      document.title = PAGE_I18N[lang].title;
+
+      // 语言按钮高亮
+      document.getElementById("btnEN").classList.toggle("active", lang === "en");
+      document.getElementById("btnZH").classList.toggle("active", lang === "zh");
+    }
+
+    document.getElementById("btnEN").addEventListener("click", () => setLang("en"));
+    document.getElementById("btnZH").addEventListener("click", () => setLang("zh"));
+
+    setLang(getLang());
+
+    /* =========================
+      2) 顶部轮播（4 张图）— 点击跳子页面 subpage.html?c=1..4
+    ========================= */
+    const track = document.getElementById("track");
+    const dots = document.getElementById("dots");
+    const slides = Array.from(document.querySelectorAll(".lp-slide"));
+    let idx = 0;
+    let timer = null;
+
+    function renderDots(){
+      dots.innerHTML = "";
+      slides.forEach((_, i) => {
+        const d = document.createElement("button");
+        d.className = "lp-dot" + (i === idx ? " active" : "");
+        d.type = "button";
+        d.setAttribute("aria-label", "Go to slide " + (i+1));
+        d.addEventListener("click", () => go(i, true));
+        dots.appendChild(d);
+      });
+    }
+
+    function go(i, userAction){
+      idx = (i + slides.length) % slides.length;
+      track.style.transform = `translateX(${-idx * 100}%)`;
+      renderDots();
+      if (userAction) restart();
+    }
+
+    function restart(){
+      if (timer) clearInterval(timer);
+      timer = setInterval(() => go(idx + 1, false), 3800);
+    }
+
+    slides.forEach(s => {
+      s.addEventListener("click", () => {
+        const i = Number(s.getAttribute("data-index") || "0");
+        // ✅ 跳子页面（同域静态页）
+        window.location.href = `./subpage.html?c=${i+1}`;
+      });
+    });
+
+    go(0, false);
+    restart();
+
+    /* =========================
+      3) 登录逻辑（与之前一致）
+    ========================= */
+    const API_BASE = ""; // 同域部署就保持 ""，否则改成 "https://api.xxx.com"
+    const form = document.getElementById("loginForm");
+    const msgEl = document.getElementById("msg");
+    const btnLogin = document.getElementById("btnLogin");
+    const btnClear = document.getElementById("btnClear");
+
+    function setMsg(text, type){
+      msgEl.textContent = text || "";
+      msgEl.className = "lp-msg" + (type ? (" " + type) : "");
+    }
+    function setBusy(b){
+      btnLogin.disabled = !!b;
+      btnClear.disabled = !!b;
+    }
+
+    btnClear.addEventListener("click", () => {
+      form.username.value = "";
+      form.password.value = "";
+      setMsg("");
+      form.username.focus();
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setMsg("");
+      setBusy(true);
+
+      const lang = getLang();
+      const t = PAGE_I18N[lang];
+
+      const username = form.username.value.trim();
+      const password = form.password.value;
+
+      if (!username || !password) {
+        setMsg(t.msg_need, "error");
+        setBusy(false);
+        return;
+      }
+
+      try {
+        const resp = await fetch(`${API_BASE}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          setMsg(t.msg_fail + (data?.error || `HTTP ${resp.status}`), "error");
+          setBusy(false);
+          return;
+        }
+        if (!data || !data.ok || !data.token) {
+          setMsg(t.msg_fail + "Bad response", "error");
+          setBusy(false);
+          return;
+        }
+
+        localStorage.setItem("session_token", data.token);
+        if (data.expires_at) localStorage.setItem("session_expires_at", data.expires_at);
+
+        setMsg(t.msg_ok, "ok");
+        setTimeout(() => window.location.href = "./console.html", 450);
+      } catch (err) {
+        setMsg(t.msg_net + (err?.message || err), "error");
+      } finally {
+        setBusy(false);
+      }
+    });
+  </script>
+</body>
+</html>

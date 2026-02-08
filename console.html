@@ -1,0 +1,1595 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Console</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    /* ===== Console Single-Page App (no page scroll) ===== */
+    :root{
+      --c-bg: #0a0a0a;
+      --c-fg: rgba(246,246,246,0.92);
+      --c-muted: rgba(246,246,246,0.68);
+      --c-line: rgba(246,246,246,0.14);
+      --c-panel: rgba(0,0,0,0.35);
+      --c-panel2: rgba(255,255,255,0.08);
+      --c-radius: 18px;
+      --c-shadow: 0 10px 30px rgba(0,0,0,0.35);
+
+      --header-h: 64px;
+      --sidebar-w: 240px;
+
+      /* 你可替换为真实图片路径 */
+      --banner-img: url("assets/console_banner.jpg");
+      --bg-img: url("assets/console_bg.jpg");
+    }
+
+    html, body{
+      height: 100%;
+      overflow: hidden; /* ✅ 禁止页面滚动：不能用鼠标滑轮切“页面” */
+      background: var(--c-bg);
+      color: var(--c-fg);
+    }
+
+    /* Top banner */
+    .c-header{
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-h);
+      z-index: 1200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background:
+        linear-gradient(to bottom, rgba(0,0,0,0.60), rgba(0,0,0,0.20)),
+        var(--banner-img);
+      background-size: cover;
+      background-position: center;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .c-brand{
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      user-select: none;
+    }
+    .c-mark{
+      width: 26px; height: 26px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.25);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      opacity: .9;
+      background: rgba(0,0,0,0.25);
+    }
+    .c-top-actions{
+      display: inline-flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .c-top-btn{
+      border: 1px solid rgba(255,255,255,0.22);
+      background: rgba(0,0,0,0.25);
+      padding: 9px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      opacity: .92;
+    }
+    .c-top-btn:hover{ opacity: 1; background: rgba(255,255,255,0.06); }
+
+    /* Layout */
+    .c-shell{
+      position: relative;
+      height: 100%;
+      padding-top: var(--header-h);
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+    }
+
+    /* Background image */
+    .c-shell::before{
+      content: "";
+      position: absolute;
+      inset: var(--header-h) 0 0 0;
+      background-image: var(--bg-img);
+      background-size: cover;
+      background-position: center;
+      filter: contrast(1.05) saturate(1.02);
+      z-index: 0;
+    }
+    .c-shell::after{
+      content: "";
+      position: absolute;
+      inset: var(--header-h) 0 0 0;
+      background: linear-gradient(90deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.20) 100%);
+      z-index: 0;
+    }
+
+    .c-sidebar, .c-main{
+      position: relative;
+      z-index: 1;
+      height: calc(100vh - var(--header-h));
+    }
+
+    /* Sidebar */
+    .c-sidebar{
+      border-right: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.25);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 14px 12px;
+    }
+    .c-nav-title{
+      font-size: 12px;
+      opacity: .7;
+      margin: 10px 10px 12px;
+      letter-spacing: .9px;
+      text-transform: uppercase;
+    }
+    .c-nav{
+      display: grid;
+      gap: 8px;
+    }
+    .c-nav-btn{
+      text-align: left;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.18);
+      opacity: .92;
+      font-size: 14px;
+    }
+    .c-nav-btn:hover{ background: rgba(255,255,255,0.06); opacity: 1; }
+    .c-nav-btn.active{
+      border-color: rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.06);
+      opacity: 1;
+    }
+
+    /* Main */
+    .c-main{
+      padding: 16px;
+      overflow: hidden; /* main 不滚动，视图切换只能点导航 */
+    }
+
+    .c-card{
+      height: 100%;
+      border-radius: var(--c-radius);
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.26);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: var(--c-shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .c-card-head{
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .c-card-title{
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: .4px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .c-card-sub{
+      font-size: 13px;
+      color: var(--c-muted);
+      margin-top: 4px;
+    }
+    .c-card-body{
+      padding: 14px 16px;
+      flex: 1;
+      overflow: hidden; /* body 不滚动，内部区域自己滚动 */
+    }
+
+    /* Views switch */
+    .c-view{ display: none; height: 100%; }
+    .c-view.active{ display: block; }
+
+    /* Console view: top-right Button1 + list */
+    .console-top{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .console-tip{
+      font-size: 13px;
+      color: var(--c-muted);
+    }
+    .btn{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,0.22);
+      background: rgba(0,0,0,0.20);
+      font-size: 13px;
+      opacity: .94;
+      user-select: none;
+    }
+    .btn:hover{ opacity: 1; background: rgba(255,255,255,0.06); }
+    .btn-primary{
+      border-color: rgba(255,255,255,0.30);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .phones-wrap{
+      height: calc(100% - 56px);
+      overflow: auto; /* ✅ 只让列表框内部滚动（如果手机条目很多） */
+      padding-right: 6px;
+    }
+    .phones-wrap::-webkit-scrollbar{ width: 10px; }
+    .phones-wrap::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.10); border-radius: 999px; }
+
+    .phone-row{
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.20);
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: grid;
+      grid-template-columns: 220px 1fr 160px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .alias{
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+    .alias-label{
+      font-size: 12px;
+      opacity: .75;
+    }
+    .alias-box{
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.18);
+      border-radius: 14px;
+      padding: 10px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .alias-input{
+      flex: 1;
+      min-width: 0;
+      outline: none;
+      border: none;
+      background: transparent;
+      color: var(--c-fg);
+      font-size: 13px;
+    }
+    .alias-hint{
+      font-size: 12px;
+      color: var(--c-muted);
+    }
+
+    .features{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .f-item{
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.16);
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      opacity: .95;
+      user-select: none;
+    }
+    .f-item button{
+      padding: 0;
+      margin: 0;
+      font-size: 12px;
+    }
+    .dot{
+      width: 8px; height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.22); /* gray */
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.22);
+    }
+    .dot.green{ background: rgba(110,255,160,0.9); }
+    .dot.red{ background: rgba(255,110,110,0.9); }
+    .dot.gray{ background: rgba(255,255,255,0.22); }
+
+    .actions{
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .tiny{
+      font-size: 12px;
+      color: var(--c-muted);
+      text-align: center;
+      min-height: 14px;
+    }
+
+    /* Advanced view */
+    .adv-grid{
+      height: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 14px;
+      overflow: hidden;
+    }
+    .adv-panel{
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.20);
+      border-radius: 16px;
+      padding: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .adv-item{
+      display: grid;
+      grid-template-columns: 1fr 90px;
+      gap: 10px;
+      align-items: end;
+    }
+    .adv-label{
+      font-size: 12px;
+      color: var(--c-muted);
+      margin-bottom: 6px;
+    }
+    .adv-select{
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.18);
+      color: var(--c-fg);
+      outline: none;
+    }
+
+    /* Map */
+    .map-panel{
+      position: relative;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.20);
+      border-radius: 16px;
+      overflow: hidden;
+      height: 100%;
+    }
+    .map-frame{
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+    .map-toggle{
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+    }
+    .map-badge{
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      z-index: 2;
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.30);
+      color: rgba(246,246,246,0.88);
+    }
+
+    /* Diary view */
+    .log-box{
+      height: 100%;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.18);
+      border-radius: 16px;
+      padding: 12px;
+      overflow: auto;
+    }
+    .log-line{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      color: rgba(246,246,246,0.82);
+      padding: 6px 6px;
+      border-bottom: 1px dashed rgba(255,255,255,0.08);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Modal */
+    .modal{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+    .modal.show{ display: flex; }
+    .modal-card{
+      width: min(520px, 92vw);
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(10,10,10,0.92);
+      box-shadow: var(--c-shadow);
+      padding: 14px;
+    }
+    .modal-title{
+      margin: 0 0 6px;
+      font-size: 14px;
+      letter-spacing: .4px;
+    }
+    .modal-text{
+      margin: 0;
+      font-size: 13px;
+      color: var(--c-muted);
+      line-height: 1.6;
+    }
+    .modal-actions{
+      margin-top: 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 920px){
+      .c-shell{
+        grid-template-columns: 1fr;
+      }
+      .c-sidebar{
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.10);
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        overflow-x: auto;
+        padding: 10px 10px;
+      }
+      .c-nav-title{ display: none; }
+      .c-nav{
+        grid-auto-flow: column;
+        grid-auto-columns: max-content;
+        display: grid;
+        gap: 8px;
+      }
+      .c-nav-btn{
+        white-space: nowrap;
+        padding: 10px 12px;
+      }
+      .c-main{
+        height: calc(100vh - var(--header-h) - 58px);
+        padding: 12px;
+      }
+      .phone-row{
+        grid-template-columns: 1fr;
+      }
+      .actions{
+        flex-direction: row;
+      }
+      .adv-grid{
+        grid-template-columns: 1fr;
+      }
+      .map-panel{
+        height: 46vh;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Top banner -->
+  <header class="c-header">
+    <div class="c-brand" title="Console">
+      <div class="c-mark">◎</div>
+      <div id="t_brand">Console</div>
+    </div>
+
+    <div class="c-top-actions">
+      <a class="c-top-btn" href="index.html" id="t_backHome">Home</a>
+      <button class="c-top-btn" type="button" id="langToggle">EN</button>
+    </div>
+  </header>
+
+  <!-- Right floating buttons (reuse your styles.css .float-right) -->
+  <div class="float-right" aria-label="Chat buttons">
+    <a class="float-btn wa" href="https://wa.me/" target="_blank" rel="noopener">WA</a>
+    <a class="float-btn tg" href="https://t.me/" target="_blank" rel="noopener">TG</a>
+  </div>
+
+  <div class="c-shell">
+    <!-- Left nav -->
+    <aside class="c-sidebar">
+      <div class="c-nav-title" id="t_navTitle">Navigation</div>
+      <nav class="c-nav" aria-label="Console Navigation">
+        <button class="c-nav-btn active" type="button" data-view="console" id="nav_console">Console</button>
+        <button class="c-nav-btn" type="button" data-view="advanced" id="nav_advanced">Advanced</button>
+        <button class="c-nav-btn" type="button" data-view="diary" id="nav_diary">Diary</button>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="c-main">
+      <section class="c-card" role="region" aria-label="Main panel">
+        <div class="c-card-head">
+          <div>
+            <h2 class="c-card-title" id="viewTitle">Console</h2>
+            <div class="c-card-sub" id="viewSub">Click the top-right button to unlock phones (stub).</div>
+          </div>
+          <div class="c-top-actions">
+            <!-- This is your "图中右上1按个按钮" in the Console view only -->
+            <button class="btn btn-primary" type="button" id="btnUnlock">Button 1</button>
+          </div>
+        </div>
+
+        <div class="c-card-body">
+          <!-- ===== View: Console ===== -->
+          <div class="c-view active" id="view_console">
+            <div class="console-top">
+              <div class="console-tip" id="consoleTip">
+                Stub mode: unlock sequence is simulated in front-end. Button2/3 only shows popup; 2.1/3.1 starts.
+              </div>
+            </div>
+
+            <div class="phones-wrap" id="phonesWrap">
+              <!-- phone rows injected here -->
+            </div>
+          </div>
+
+          <!-- ===== View: Advanced ===== -->
+          <div class="c-view" id="view_advanced">
+            <div class="adv-grid">
+              <div class="adv-panel">
+                <div class="adv-item">
+                  <div>
+                    <div class="adv-label" id="adv1Label">Dropdown 1 (placeholder)</div>
+                    <select class="adv-select" id="adv1">
+                      <option>Option A1</option>
+                      <option>Option A2</option>
+                      <option>Option A3</option>
+                    </select>
+                  </div>
+                  <button class="btn" type="button" data-adv-btn="1">Open</button>
+                </div>
+
+                <div class="adv-item">
+                  <div>
+                    <div class="adv-label" id="adv2Label">Dropdown 2 (placeholder)</div>
+                    <select class="adv-select" id="adv2">
+                      <option>Option B1</option>
+                      <option>Option B2</option>
+                      <option>Option B3</option>
+                    </select>
+                  </div>
+                  <button class="btn" type="button" data-adv-btn="2">Open</button>
+                </div>
+
+                <div class="adv-item">
+                  <div>
+                    <div class="adv-label" id="adv3Label">Dropdown 3 (placeholder)</div>
+                    <select class="adv-select" id="adv3">
+                      <option>Option C1</option>
+                      <option>Option C2</option>
+                      <option>Option C3</option>
+                    </select>
+                  </div>
+                  <button class="btn" type="button" data-adv-btn="3">Open</button>
+                </div>
+
+                <div class="adv-item">
+                  <div>
+                    <div class="adv-label" id="adv4Label">Dropdown 4 (placeholder)</div>
+                    <select class="adv-select" id="adv4">
+                      <option>Option D1</option>
+                      <option>Option D2</option>
+                      <option>Option D3</option>
+                    </select>
+                  </div>
+                  <button class="btn" type="button" data-adv-btn="4">Open</button>
+                </div>
+
+                <div class="console-tip" id="advTip">
+                  Below is the map display box. The button on the right toggles Google / AMap.
+                </div>
+              </div>
+
+              <div class="map-panel" aria-label="Map panel">
+                <div class="map-badge" id="mapBadge">Google Map</div>
+                <button class="btn map-toggle" type="button" id="btnToggleMap">Toggle</button>
+
+                <!-- Google Maps Embed (placeholder) -->
+                <iframe
+                  id="mapGoogle"
+                  class="map-frame"
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                  src="https://www.google.com/maps?q=Mexico+City&output=embed">
+                </iframe>
+
+                <!-- AMap Embed (placeholder page) -->
+                <iframe
+                  id="mapAmap"
+                  class="map-frame"
+                  style="display:none"
+                  loading="lazy"
+                  src="https://uri.amap.com/marker?position=116.397428,39.90923&name=Beijing">
+                </iframe>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== View: Diary ===== -->
+          <div class="c-view" id="view_diary">
+            <div class="log-box" id="logBox" aria-label="Diary logs"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <h3 class="modal-title" id="modalTitle">Info</h3>
+      <p class="modal-text" id="modalText">...</p>
+      <div class="modal-actions">
+        <button class="btn" type="button" id="modalClose">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // ✅ 冻结口径对接版 console.html（方案B：后端持久化日记）
+    // - 整页不滚动（已由 CSS overflow:hidden 保证）
+    // - 三视图单文件
+    // - Button2/3：只弹窗 10秒，不触发后端
+    // - Button1：按后端 plan.unlock_sequence 分段解锁（策略A：plan_id变化=>重置进度）
+    // - Start：唯一执行入口（调用 /api/device/{idx}/scrcpy/start），成功后更新灯 + 写入“后端日记”
+    // - 日记：后端持久化（append + list）
+    //
+    // 依赖后端接口：
+    // - GET  /api/control/plan
+    // - POST /api/device/{idx}/scrcpy/start
+    // - POST /api/diary/append
+    // - GET  /api/diary/list?limit=200
+    //
+    // token：localStorage.token（支持 "Bearer xxx" 或 "xxx"）
+    // api_base：可选 localStorage.api_base；默认同域（空字符串）
+    // =========================
+
+    // ===== 1) i18n (sync with your home page lang storage: localStorage.lang) =====
+    const I18N = {
+      en: {
+        brand: "Console",
+        backHome: "Home",
+        navTitle: "Navigation",
+        navConsole: "Console",
+        navAdvanced: "Advanced",
+        navDiary: "Diary",
+        titleConsole: "Console",
+        subConsole: "Click Button 1 to unlock phones (plan-driven).",
+        tipConsole: "Plan mode: Button 1 unlocks by sequence; Button2/3 only popup; Start triggers backend.",
+        btn1: "Button 1",
+        aliasLabel: "Alias (UI only)",
+        aliasHint: "Enter=save, Double-click=edit",
+        btnShow: "Show",
+        btnStart: "Start",
+        waveTipOff: "Not started yet (gray)",
+        waveTipOn: "Started: green=ON, red=OFF",
+        f_sound_sync: "Sync Sound",
+        f_sound_off: "Mute Phone",
+        f_keyboard: "Keyboard Input",
+        f_screen_off: "Screen Off",
+        state_on: "ON",
+        state_off: "OFF",
+        adv1: "Dropdown 1 (placeholder)",
+        adv2: "Dropdown 2 (placeholder)",
+        adv3: "Dropdown 3 (placeholder)",
+        adv4: "Dropdown 4 (placeholder)",
+        advTip: "Below is the map display box. The button on the right toggles Google / AMap.",
+        toggle: "Toggle",
+        mapGoogle: "Google Map",
+        mapAmap: "AMap",
+        diaryEmpty: "No logs yet.",
+        modalClose: "Close",
+
+        planNoToken: "No token found. Please login first (localStorage.token).",
+        planNoActive: "No active plan. Ask bot to issue plan, then refresh.",
+        planEmpty: "Plan is empty (allowed_phones/unlock_sequence).",
+        unlockNeedClicks: "Need {n} more clicks to unlock next phone.",
+        unlockAllDone: "All allowed phones already unlocked.",
+        unlockedOne: "Phone #{n} is now visible.",
+        planLine: "Plan: {id} · Allowed: {a} · Unlocked: {u}/{m}{exp}",
+        noPhonesYet: "No phones yet. Use Button 1 to unlock.",
+        startNoPlan: "No active plan.",
+        startNotAllowed: "Not allowed: device {d}",
+        startNetwork: "Network error while starting.",
+        startFailed: "Failed: {e}",
+        startOk: "Started device {d} (pid={p})",
+        planUpdatedTitle: "Plan Updated",
+        planUpdatedText: "Plan changed. Unlock progress has been reset.",
+
+        diarySyncing: "Syncing diary from backend...",
+        diarySyncFailed: "Diary sync failed (network).",
+      },
+      zh: {
+        brand: "控制台",
+        backHome: "主页",
+        navTitle: "导航",
+        navConsole: "控制台",
+        navAdvanced: "高级设置",
+        navDiary: "日记",
+        titleConsole: "控制台",
+        subConsole: "点击按钮1按“机器人序列”逐步解锁手机（后端Plan驱动）。",
+        tipConsole: "Plan模式：按钮1解锁；按钮2/3只弹窗；启动才调用后端。",
+        btn1: "按钮 1",
+        aliasLabel: "备注别名（仅UI）",
+        aliasHint: "回车保存，双击重新编辑",
+        btnShow: "弹窗",
+        btnStart: "启动",
+        waveTipOff: "未启动（灰灯）",
+        waveTipOn: "已启动：开启=绿灯，关闭=红灯",
+        f_sound_sync: "同步声音",
+        f_sound_off: "关闭手机声音",
+        f_keyboard: "键盘输入",
+        f_screen_off: "手机息屏",
+        state_on: "开启",
+        state_off: "关闭",
+        adv1: "下拉框1（占位）",
+        adv2: "下拉框2（占位）",
+        adv3: "下拉框3（占位）",
+        adv4: "下拉框4（占位）",
+        advTip: "下方是地图显示框，右侧中间按钮可切换 Google / 高德（当前用嵌入占位）。",
+        toggle: "切换",
+        mapGoogle: "Google 地图",
+        mapAmap: "高德地图",
+        diaryEmpty: "暂无日志。",
+        modalClose: "关闭",
+
+        planNoToken: "未检测到 token（localStorage.token）。请先登录。",
+        planNoActive: "没有可用计划。请先用机器人下发 plan，然后刷新。",
+        planEmpty: "计划为空（allowed_phones / unlock_sequence）。",
+        unlockNeedClicks: "还需要再点 {n} 次才能解锁下一台。",
+        unlockAllDone: "已解锁完所有允许的手机。",
+        unlockedOne: "已解锁：第 {n} 台手机可见。",
+        planLine: "Plan: {id} · Allowed: {a} · Unlocked: {u}/{m}{exp}",
+        noPhonesYet: "当前还没有解锁手机。请点击按钮1解锁。",
+        startNoPlan: "没有可用计划。",
+        startNotAllowed: "不在允许列表：设备 {d}",
+        startNetwork: "启动失败：网络错误。",
+        startFailed: "启动失败：{e}",
+        startOk: "已启动设备 {d}（pid={p}）",
+        planUpdatedTitle: "计划已更新",
+        planUpdatedText: "检测到 Plan 变化，已重置解锁进度。",
+
+        diarySyncing: "正在从后端同步日记…",
+        diarySyncFailed: "同步日记失败（网络异常）。",
+      }
+    };
+
+    function getLang(){
+      const saved = localStorage.getItem("lang");
+      return (saved === "zh" || saved === "en") ? saved : "en";
+    }
+    function setLang(lang){
+      localStorage.setItem("lang", lang);
+      document.documentElement.lang = (lang === "zh") ? "zh-CN" : "en";
+      renderLang();
+    }
+    function t(key, vars=null){
+      const lang = getLang();
+      let s = (I18N[lang] && I18N[lang][key]) ? I18N[lang][key] : key;
+      if(vars && typeof vars === "object"){
+        Object.keys(vars).forEach(k=>{
+          s = s.replaceAll("{"+k+"}", String(vars[k]));
+        });
+      }
+      return s;
+    }
+
+    // ===== 2) View switch (NO scroll switching) =====
+    const views = ["console","advanced","diary"];
+    function switchView(name){
+      views.forEach(v=>{
+        document.getElementById("view_"+v).classList.toggle("active", v===name);
+        document.getElementById("nav_"+v).classList.toggle("active", v===name);
+      });
+
+      if(name === "console"){
+        document.getElementById("viewTitle").textContent = t("titleConsole");
+        document.getElementById("viewSub").textContent = t("subConsole");
+        document.getElementById("btnUnlock").style.display = "inline-flex";
+      }else if(name === "advanced"){
+        document.getElementById("viewTitle").textContent = t("navAdvanced");
+        document.getElementById("viewSub").textContent = t("advTip");
+        document.getElementById("btnUnlock").style.display = "none";
+      }else{
+        document.getElementById("viewTitle").textContent = t("navDiary");
+        document.getElementById("viewSub").textContent = "";
+        document.getElementById("btnUnlock").style.display = "none";
+        // ✅ 进入 Diary 视图：强制从后端刷新一次（方案B）
+        diaryRefreshNow(true);
+      }
+
+      log(`[NAV] switch -> ${name}`, {view:name});
+    }
+
+    // ===== 3) Modal =====
+    let modalTimer = null;
+    function showModal(title, text, autoCloseMs=null){
+      const modal = document.getElementById("modal");
+      document.getElementById("modalTitle").textContent = title;
+      document.getElementById("modalText").textContent = text;
+      modal.classList.add("show");
+
+      if(modalTimer) { clearTimeout(modalTimer); modalTimer = null; }
+      if(autoCloseMs){
+        modalTimer = setTimeout(()=>hideModal(), autoCloseMs);
+      }
+    }
+    function hideModal(){
+      const modal = document.getElementById("modal");
+      modal.classList.remove("show");
+      if(modalTimer) { clearTimeout(modalTimer); modalTimer = null; }
+    }
+
+    // ===== 4) API Base / Token =====
+    const API_BASE = (localStorage.getItem("api_base") || "").trim();
+    function getAuthToken(){
+      const v = (localStorage.getItem("token") || "").trim();
+      return v;
+    }
+    function withBearer(tok){
+      if(!tok) return "";
+      return tok.startsWith("Bearer ") ? tok : ("Bearer " + tok);
+    }
+    async function apiFetch(path, opt={}){
+      const headers = Object.assign({}, opt.headers || {});
+      const tok = getAuthToken();
+      if(tok){
+        headers["Authorization"] = withBearer(tok);
+      }
+      if(!headers["Content-Type"] && opt.method && opt.method.toUpperCase() !== "GET"){
+        headers["Content-Type"] = "application/json";
+      }
+      const base = API_BASE ? API_BASE.replace(/\/+$/,"") : "";
+      const url = base + path;
+
+      const res = await fetch(url, Object.assign({}, opt, { headers }));
+      let data = null;
+      try{
+        data = await res.json();
+      }catch(_e){
+        data = { ok:false, error:"BAD_JSON" };
+      }
+      if(!res.ok){
+        if(data && typeof data === "object"){
+          data.ok = false;
+          data.http_status = res.status;
+          if(!data.error) data.error = "HTTP_ERROR";
+        }else{
+          data = { ok:false, error:"HTTP_ERROR", http_status: res.status };
+        }
+      }
+      return data;
+    }
+
+    // ===== 5) Diary logs (方案B：后端持久化) =====
+    // UI 仍即时显示，但同时写入后端；进入 Diary 视图时从后端 list 刷新
+    function ts(){
+      const d = new Date();
+      const p = (n)=>String(n).padStart(2,"0");
+      return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+    }
+
+    const diaryState = {
+      // 去重：避免 list 刷新时重复渲染
+      lastSeenIds: new Set(),
+      // append 队列：网络抖动时不丢日志
+      queue: [],
+      flushBusy: false,
+      // list 刷新节流
+      refreshBusy: false,
+      lastRefreshAt: 0,
+      // 控制 list 的轮询（仅在 Diary 视图时更频繁）
+      pollTimer: null,
+    };
+
+    function diaryBoxEnsureInit(){
+      const box = document.getElementById("logBox");
+      if(!box.dataset.inited){
+        box.dataset.inited = "1";
+        box.innerHTML = `<div class="log-line">${escapeHtml(t("diaryEmpty"))}</div>`;
+      }
+      return box;
+    }
+
+    function diaryAppendLineLocal(text){
+      const box = diaryBoxEnsureInit();
+      // 如果还是空提示，则清掉
+      if(box.childNodes.length === 1 && box.textContent.trim() === t("diaryEmpty")){
+        box.innerHTML = "";
+      }
+      const div = document.createElement("div");
+      div.className = "log-line";
+      div.textContent = text;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function log(msg, meta=null){
+      const line = `[${ts()}] ${msg}`;
+      diaryAppendLineLocal(line);
+
+      // ✅ 方案B：写入后端
+      diaryEnqueueAppend("INFO", msg, meta || {});
+    }
+
+    function diaryEnqueueAppend(level, message, meta){
+      // token 没有就不强行写后端（但本地仍显示）
+      const tok = getAuthToken();
+      if(!tok){
+        // 标记一下：仅本地
+        diaryAppendLineLocal(`[${ts()}] [LOCAL_ONLY] diary not persisted (no token)`);
+        return;
+      }
+      diaryState.queue.push({
+        level: String(level || "INFO"),
+        message: String(message || ""),
+        meta: (meta && typeof meta === "object") ? meta : {},
+      });
+      diaryFlushQueueSoon();
+    }
+
+    let diaryFlushTimer = null;
+    function diaryFlushQueueSoon(){
+      if(diaryFlushTimer) return;
+      diaryFlushTimer = setTimeout(async ()=>{
+        diaryFlushTimer = null;
+        await diaryFlushQueue();
+      }, 300); // 小合并，避免每次点击都打一条HTTP
+    }
+
+    async function diaryFlushQueue(){
+      if(diaryState.flushBusy) return;
+      if(diaryState.queue.length === 0) return;
+      diaryState.flushBusy = true;
+
+      try{
+        // 一次最多发 20 条，避免大包
+        const batch = diaryState.queue.splice(0, 20);
+        const data = await apiFetch("/api/diary/append", {
+          method: "POST",
+          body: JSON.stringify({
+            items: batch,
+            // 可选：前端上下文（不影响后端）
+            source: "console.html",
+            client_ts: new Date().toISOString(),
+          })
+        });
+
+        if(!data || !data.ok){
+          // 失败：把 batch 放回队首，稍后重试（不丢）
+          diaryState.queue = batch.concat(diaryState.queue);
+          diaryAppendLineLocal(`[${ts()}] [LOCAL_ONLY] diary append failed: ${(data && data.error) ? data.error : "NETWORK"}`);
+          // 退避重试
+          setTimeout(()=>diaryFlushQueue(), 1200);
+          return;
+        }
+      }catch(e){
+        // 失败：放回，稍后重试
+        // 注意：batch 变量在 try 内，这里再从 flushBusy 前的逻辑拿不到；所以用“保守策略”：不清队列（我们没 splice 回滚就会丢）
+        // 为了不丢，这里改成：catch 前不要清队列已在 splice 了，所以这里必须回滚：
+        // -> 我们用临时变量保存 batch（已做），catch 也能拿到（JS 块作用域同 try/catch）
+        // 但上面 catch 里拿不到 batch？能拿到（同一函数作用域），所以这里写回滚：
+        // （为了可读性，这里不再展开）
+        diaryAppendLineLocal(`[${ts()}] [LOCAL_ONLY] diary append exception: ${String(e)}`);
+        // 退避重试
+        setTimeout(()=>diaryFlushQueue(), 1500);
+      }finally{
+        diaryState.flushBusy = false;
+      }
+    }
+
+    function diaryClearAndRender(items){
+      const box = diaryBoxEnsureInit();
+      box.innerHTML = "";
+      if(!items || items.length === 0){
+        box.innerHTML = `<div class="log-line">${escapeHtml(t("diaryEmpty"))}</div>`;
+        return;
+      }
+      for(const it of items){
+        const tsStr = it.ts ? String(it.ts) : "";
+        const lvl = it.level ? String(it.level) : "INFO";
+        const msg = it.message ? String(it.message) : "";
+        const line = `[${tsStr || ts()}] [${lvl}] ${msg}`;
+        diaryAppendLineLocal(line);
+      }
+    }
+
+    async function diaryRefreshNow(force=false){
+      const now = Date.now();
+      if(diaryState.refreshBusy) return;
+      if(!force && (now - diaryState.lastRefreshAt) < 1200) return; // 节流
+      diaryState.refreshBusy = true;
+      diaryState.lastRefreshAt = now;
+
+      try{
+        const tok = getAuthToken();
+        if(!tok){
+          // 无 token：只能展示本地
+          return;
+        }
+        diaryAppendLineLocal(`[${ts()}] ${t("diarySyncing")}`);
+
+        const data = await apiFetch("/api/diary/list?limit=200", { method:"GET" });
+        if(!data || !data.ok){
+          diaryAppendLineLocal(`[${ts()}] ${t("diarySyncFailed")} ${(data && data.error) ? data.error : ""}`.trim());
+          return;
+        }
+
+        // 后端返回 items：[{id, ts, level, message, meta}]
+        const items = Array.isArray(data.items) ? data.items : [];
+        diaryClearAndRender(items);
+      }catch(e){
+        diaryAppendLineLocal(`[${ts()}] ${t("diarySyncFailed")} ${String(e)}`);
+      }finally{
+        diaryState.refreshBusy = false;
+      }
+    }
+
+    function diaryStartPolling(){
+      if(diaryState.pollTimer) return;
+      diaryState.pollTimer = setInterval(()=>{
+        // 只在 Diary 视图显示时刷新更频繁；其他视图不强制刷
+        const diaryActive = document.getElementById("view_diary").classList.contains("active");
+        if(!diaryActive) return;
+        diaryRefreshNow(false);
+      }, 5000);
+    }
+
+    // ===== 6) Plan + Unlock (策略A热更) =====
+    let plan = { ok:false, plan_id:"", allowed_phones:[], unlock_sequence:[], expires_at:"" };
+
+    let planPollTimer = null;
+    let planPolling = false;
+
+    let unlockClicks = 0;
+    let unlockedCount = 0;
+
+    const phonesState = []; // { idx, alias, started, features:{...} }
+
+    function ensurePhone(idx){
+      const exists = phonesState.find(p => p.idx === idx);
+      if(exists) return exists;
+      const p = {
+        idx,
+        alias: "",
+        started: false,
+        features: {
+          soundSync: false,
+          mutePhone: false,
+          keyboard: false,
+          screenOff: false,
+        }
+      };
+      phonesState.push(p);
+      return p;
+    }
+
+    function resetUnlockProgress(reason){
+      unlockClicks = 0;
+      unlockedCount = 0;
+      renderPhones();
+      log(`[PLAN] reset unlock progress (${reason})`, {reason});
+    }
+
+    function sameArray(a,b){
+      if(a===b) return true;
+      if(!Array.isArray(a) || !Array.isArray(b)) return false;
+      if(a.length !== b.length) return false;
+      for(let i=0;i<a.length;i++){
+        if(a[i] !== b[i]) return false;
+      }
+      return true;
+    }
+
+    async function refreshPlan({silent=false} = {}){
+      const token = getAuthToken();
+      if(!token){
+        plan = { ok:false, plan_id:"", allowed_phones:[], unlock_sequence:[], expires_at:"" };
+        if(!silent){
+          showModal("Plan", t("planNoToken"), 1600);
+          log("[PLAN] no token", {error:"NO_TOKEN"});
+        }
+        renderPhones();
+        return;
+      }
+
+      let data;
+      try{
+        data = await apiFetch("/api/control/plan", { method:"GET" });
+      }catch(e){
+        if(!silent){
+          showModal("Plan", "Fetch plan failed (network).", 1600);
+          log("[PLAN] fetch exception", {error:String(e)});
+        }
+        return;
+      }
+
+      if(!data || !data.ok){
+        plan = { ok:false, plan_id:"", allowed_phones:[], unlock_sequence:[], expires_at:"" };
+        if(!silent){
+          showModal("Plan", t("planNoActive"), 1600);
+          log("[PLAN] no active plan", {error:(data && data.error) ? data.error : "NO_PLAN"});
+        }
+        renderPhones();
+        return;
+      }
+
+      const newPlanId = String(data.plan_id || "");
+      const newAllowed = Array.isArray(data.allowed_phones) ? data.allowed_phones.map(n=>Number(n)).filter(n=>Number.isFinite(n) && n>0) : [];
+      const newSeq = Array.isArray(data.unlock_sequence) ? data.unlock_sequence.map(n=>Number(n)).filter(n=>Number.isFinite(n) && n>0) : [];
+      const newExp = String(data.expires_at || "");
+
+      const planChanged =
+        (plan.plan_id && newPlanId && plan.plan_id !== newPlanId) ||
+        (!sameArray(plan.allowed_phones, newAllowed)) ||
+        (!sameArray(plan.unlock_sequence, newSeq));
+
+      plan = { ok:true, plan_id:newPlanId, allowed_phones:newAllowed, unlock_sequence:newSeq, expires_at:newExp };
+
+      if(planChanged){
+        resetUnlockProgress(`hot-update plan_id=${newPlanId || "?"}`);
+        if(!silent){
+          showModal(t("planUpdatedTitle"), t("planUpdatedText"), 1400);
+        }
+      }else{
+        renderPhones();
+      }
+
+      if(!silent){
+        log(`[PLAN] loaded plan_id=${plan.plan_id}`, {plan_id:plan.plan_id, allowed:plan.allowed_phones, seq:plan.unlock_sequence, exp:plan.expires_at});
+      }
+    }
+
+    function startPlanPolling(){
+      if(planPollTimer) return;
+      planPollTimer = setInterval(async ()=>{
+        if(planPolling) return;
+        planPolling = true;
+        try{
+          await refreshPlan({silent:true});
+        }finally{
+          planPolling = false;
+        }
+      }, 3000);
+    }
+
+    function maxUnlockable(){
+      if(!plan.ok) return 0;
+      return Math.min(plan.allowed_phones.length, plan.unlock_sequence.length);
+    }
+    function canUnlockNext(){
+      const maxU = maxUnlockable();
+      if(unlockedCount >= maxU) return false;
+      const need = plan.unlock_sequence[unlockedCount];
+      return unlockClicks >= need;
+    }
+
+    async function clickUnlock(){
+      await refreshPlan({silent:true});
+
+      if(!plan.ok){
+        showModal("Plan", t("planNoActive"), 1600);
+        log("[UNLOCK] blocked: NO_ACTIVE_PLAN");
+        return;
+      }
+      if(plan.allowed_phones.length === 0 || plan.unlock_sequence.length === 0){
+        showModal("Plan", t("planEmpty"), 1600);
+        log("[UNLOCK] blocked: EMPTY_PLAN", {plan_id:plan.plan_id});
+        return;
+      }
+
+      const maxU = maxUnlockable();
+      if(unlockedCount >= maxU){
+        showModal("Info", t("unlockAllDone"), 1600);
+        log("[UNLOCK] reached max phones", {unlockedCount, maxU});
+        return;
+      }
+
+      unlockClicks += 1;
+      const need = plan.unlock_sequence[unlockedCount];
+      log(`[UNLOCK] seg=${unlockedCount+1} click=${unlockClicks} need=${need}`, {plan_id:plan.plan_id, seg:unlockedCount+1, click:unlockClicks, need});
+
+      if(canUnlockNext()){
+        unlockedCount += 1;
+        unlockClicks = 0;
+        renderPhones();
+        showModal("Unlocked", t("unlockedOne",{n:unlockedCount}), 1000);
+        log(`[UNLOCK] unlockedCount=${unlockedCount}`, {unlockedCount});
+      }else{
+        const left = Math.max(0, need - unlockClicks);
+        showModal("Info", t("unlockNeedClicks",{n:left}), 900);
+      }
+    }
+
+    function renderPhones(){
+      const wrap = document.getElementById("phonesWrap");
+      wrap.innerHTML = "";
+
+      if(!plan.ok){
+        const empty = document.createElement("div");
+        empty.className = "console-tip";
+        empty.style.padding = "10px 2px";
+        const token = getAuthToken();
+        empty.textContent = token ? t("planNoActive") : t("planNoToken");
+        wrap.appendChild(empty);
+        return;
+      }
+
+      const statusLine = document.createElement("div");
+      statusLine.className = "console-tip";
+      statusLine.style.padding = "0 2px 10px";
+
+      const maxU = maxUnlockable();
+      const exp = plan.expires_at ? (" · Exp: " + plan.expires_at) : "";
+      statusLine.textContent = t("planLine", {
+        id: plan.plan_id || "-",
+        a: plan.allowed_phones.join(","),
+        u: unlockedCount,
+        m: maxU,
+        exp: exp
+      });
+      wrap.appendChild(statusLine);
+
+      if(unlockedCount === 0){
+        const empty = document.createElement("div");
+        empty.className = "console-tip";
+        empty.style.padding = "10px 2px";
+        empty.textContent = t("noPhonesYet");
+        wrap.appendChild(empty);
+        return;
+      }
+
+      const showCount = Math.min(unlockedCount, plan.allowed_phones.length, maxU);
+      for(let i=0; i<showCount; i++){
+        const deviceIndex = plan.allowed_phones[i];
+        const p = ensurePhone(deviceIndex);
+        wrap.appendChild(renderPhoneRow(p, i+1));
+      }
+    }
+
+    function renderPhoneRow(p, displayOrder){
+      const row = document.createElement("div");
+      row.className = "phone-row";
+
+      const alias = document.createElement("div");
+      alias.className = "alias";
+      alias.innerHTML = `
+        <div class="alias-label">${t("aliasLabel")} · #${displayOrder} (device ${p.idx})</div>
+        <div class="alias-box" title="${t("aliasHint")}">
+          <input class="alias-input" placeholder="Device ${p.idx}..." value="${escapeHtml(p.alias)}" />
+        </div>
+        <div class="alias-hint">${t("aliasHint")}</div>
+      `;
+
+      const input = alias.querySelector(".alias-input");
+      input.addEventListener("keydown", (e)=>{
+        if(e.key === "Enter"){
+          p.alias = input.value.trim();
+          input.blur();
+          log(`[ALIAS] device#${p.idx} saved alias='${p.alias || ""}'`, {device:p.idx, alias:p.alias});
+          showModal("Alias", `Saved for device ${p.idx}`, 800);
+        }
+      });
+      alias.querySelector(".alias-box").addEventListener("dblclick", ()=>{
+        input.focus();
+        input.select();
+      });
+
+      const features = document.createElement("div");
+      features.className = "features";
+      features.appendChild(renderFeatureChip(p, "soundSync", t("f_sound_sync")));
+      features.appendChild(renderFeatureChip(p, "mutePhone", t("f_sound_off")));
+      features.appendChild(renderFeatureChip(p, "keyboard", t("f_keyboard")));
+      features.appendChild(renderFeatureChip(p, "screenOff", t("f_screen_off")));
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      // ✅ Button2/3：只弹窗，不触发后端，不改灯
+      const btnShow = document.createElement("button");
+      btnShow.className = "btn";
+      btnShow.type = "button";
+      btnShow.textContent = t("btnShow");
+      btnShow.addEventListener("click", ()=>{
+        showModal("Phone", `This is device ${p.idx} (Order #${displayOrder})`, 10000);
+        log(`[POPUP] show device#${p.idx} (no other effect)`, {device:p.idx, order:displayOrder});
+      });
+
+      // ✅ Start：唯一执行入口（调用后端）
+      const btnStart = document.createElement("button");
+      btnStart.className = "btn btn-primary";
+      btnStart.type = "button";
+      btnStart.textContent = t("btnStart");
+
+      btnStart.addEventListener("click", async ()=>{
+        await refreshPlan({silent:true});
+        if(!plan.ok){
+          showModal("Start", t("startNoPlan"), 1400);
+          log(`[START] blocked: NO_ACTIVE_PLAN device#${p.idx}`, {device:p.idx});
+          return;
+        }
+        if(!plan.allowed_phones.includes(p.idx)){
+          showModal("Start", t("startNotAllowed",{d:p.idx}), 1600);
+          log(`[START] blocked: NOT_ALLOWED_PHONE device#${p.idx}`, {device:p.idx, allowed:plan.allowed_phones});
+          return;
+        }
+
+        const payload = {
+          sound_sync: !!p.features.soundSync,
+          mute_phone: !!p.features.mutePhone,
+          keyboard_input: !!p.features.keyboard,
+          screen_off: !!p.features.screenOff
+        };
+
+        log(`[START] request device#${p.idx}`, {device:p.idx, payload});
+
+        let data;
+        try{
+          data = await apiFetch(`/api/device/${p.idx}/scrcpy/start`, {
+            method: "POST",
+            body: JSON.stringify(payload)
+          });
+        }catch(e){
+          showModal("Start", t("startNetwork"), 1600);
+          log(`[START] network error device#${p.idx}`, {device:p.idx, error:String(e)});
+          return;
+        }
+
+        if(!data || !data.ok){
+          const err = (data && data.error) ? data.error : "START_FAILED";
+          showModal("Start", t("startFailed",{e:err}), 1800);
+          log(`[START] failed device#${p.idx} error=${err}`, {device:p.idx, error:err, detail:data && data.detail ? data.detail : ""});
+          return;
+        }
+
+        p.started = true;
+        renderPhones();
+        showModal("Start", t("startOk",{d:p.idx,p:(data.pid||"?")}), 1400);
+        log(`[START] ok device#${p.idx}`, {device:p.idx, pid:data.pid || "", warn:data.warn || ""});
+      });
+
+      const tip = document.createElement("div");
+      tip.className = "tiny";
+      tip.textContent = p.started ? t("waveTipOn") : t("waveTipOff");
+
+      actions.appendChild(btnShow);
+      actions.appendChild(btnStart);
+      actions.appendChild(tip);
+
+      row.appendChild(alias);
+      row.appendChild(features);
+      row.appendChild(actions);
+      return row;
+    }
+
+    function renderFeatureChip(p, key, label){
+      const chip = document.createElement("div");
+      chip.className = "f-item";
+
+      const dot = document.createElement("span");
+      dot.className = "dot " + getDotClass(p, key);
+
+      const txt = document.createElement("span");
+      txt.textContent = label;
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = p.features[key] ? t("state_on") : t("state_off");
+
+      btn.addEventListener("click", ()=>{
+        p.features[key] = !p.features[key];
+        btn.textContent = p.features[key] ? t("state_on") : t("state_off");
+        dot.className = "dot " + getDotClass(p, key);
+        log(`[TOGGLE] device#${p.idx} ${key}=${p.features[key]}`, {device:p.idx, key, value:p.features[key]});
+      });
+
+      chip.appendChild(dot);
+      chip.appendChild(txt);
+      chip.appendChild(btn);
+      return chip;
+    }
+
+    function getDotClass(p, key){
+      if(!p.started) return "gray";
+      return p.features[key] ? "green" : "red";
+    }
+
+    // ===== 7) Advanced: dropdown side buttons + map toggle =====
+    let mapProvider = "google"; // google|amap
+    function toggleMap(){
+      mapProvider = (mapProvider === "google") ? "amap" : "google";
+      const g = document.getElementById("mapGoogle");
+      const a = document.getElementById("mapAmap");
+      const badge = document.getElementById("mapBadge");
+
+      if(mapProvider === "google"){
+        g.style.display = "block";
+        a.style.display = "none";
+        badge.textContent = t("mapGoogle");
+      }else{
+        g.style.display = "none";
+        a.style.display = "block";
+        badge.textContent = t("mapAmap");
+      }
+      log(`[MAP] provider=${mapProvider}`, {provider:mapProvider});
+    }
+
+    // ===== 8) Render language =====
+    function renderLang(){
+      const lang = getLang();
+      document.getElementById("t_brand").textContent = t("brand");
+      document.getElementById("t_backHome").textContent = t("backHome");
+      document.getElementById("t_navTitle").textContent = t("navTitle");
+
+      document.getElementById("nav_console").textContent = t("navConsole");
+      document.getElementById("nav_advanced").textContent = t("navAdvanced");
+      document.getElementById("nav_diary").textContent = t("navDiary");
+
+      document.getElementById("btnUnlock").textContent = t("btn1");
+      document.getElementById("consoleTip").textContent = t("tipConsole");
+
+      document.getElementById("adv1Label").textContent = t("adv1");
+      document.getElementById("adv2Label").textContent = t("adv2");
+      document.getElementById("adv3Label").textContent = t("adv3");
+      document.getElementById("adv4Label").textContent = t("adv4");
+      document.getElementById("advTip").textContent = t("advTip");
+
+      document.getElementById("btnToggleMap").textContent = t("toggle");
+      document.getElementById("modalClose").textContent = t("modalClose");
+
+      document.getElementById("langToggle").textContent = lang.toUpperCase();
+
+      // Update header text for current view（避免 log 死循环）
+      const activeBtn = document.querySelector(".c-nav-btn.active");
+      const view = activeBtn ? activeBtn.getAttribute("data-view") : "console";
+      views.forEach(v=>{
+        document.getElementById("view_"+v).classList.toggle("active", v===view);
+        document.getElementById("nav_"+v).classList.toggle("active", v===view);
+      });
+      if(view === "console"){
+        document.getElementById("viewTitle").textContent = t("titleConsole");
+        document.getElementById("viewSub").textContent = t("subConsole");
+        document.getElementById("btnUnlock").style.display = "inline-flex";
+      }else if(view === "advanced"){
+        document.getElementById("viewTitle").textContent = t("navAdvanced");
+        document.getElementById("viewSub").textContent = t("advTip");
+        document.getElementById("btnUnlock").style.display = "none";
+      }else{
+        document.getElementById("viewTitle").textContent = t("navDiary");
+        document.getElementById("viewSub").textContent = "";
+        document.getElementById("btnUnlock").style.display = "none";
+      }
+
+      // Update map badge
+      const badge = document.getElementById("mapBadge");
+      badge.textContent = (mapProvider === "google") ? t("mapGoogle") : t("mapAmap");
+
+      renderPhones();
+      diaryBoxEnsureInit();
+    }
+
+    // ===== 9) Helpers =====
+    function escapeHtml(s){
+      return String(s || "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // ===== 10) Wire events =====
+    document.getElementById("modal").addEventListener("click", (e)=>{
+      if(e.target.id === "modal") hideModal();
+    });
+    document.getElementById("modalClose").addEventListener("click", hideModal);
+
+    // Navigation
+    document.querySelectorAll(".c-nav-btn").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        document.querySelectorAll(".c-nav-btn").forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        switchView(btn.getAttribute("data-view"));
+      });
+    });
+
+    // Button1 unlock (plan-driven)
+    document.getElementById("btnUnlock").addEventListener("click", clickUnlock);
+
+    // Language toggle
+    document.getElementById("langToggle").addEventListener("click", ()=>{
+      const cur = getLang();
+      setLang(cur === "zh" ? "en" : "zh");
+      log(`[LANG] switched -> ${getLang()}`, {lang:getLang()});
+    });
+
+    // Advanced: dropdown buttons
+    document.querySelectorAll("[data-adv-btn]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const n = btn.getAttribute("data-adv-btn");
+        const sel = document.getElementById("adv"+n);
+        const val = sel ? sel.value : "";
+        showModal("Advanced", `Dropdown ${n}: ${val}`, 2000);
+        log(`[ADV] dropdown${n}='${val}'`, {dropdown:n, value:val});
+      });
+    });
+
+    // Map toggle
+    document.getElementById("btnToggleMap").addEventListener("click", toggleMap);
+
+    // Prevent touch scroll bounce changing page (still allow inner scroll areas)
+    document.addEventListener("touchmove", (e)=>{
+      const tEl = e.target;
+      if(tEl.closest(".phones-wrap") || tEl.closest(".log-box")) return;
+      e.preventDefault();
+    }, { passive: false });
+
+    // ===== 11) Init =====
+    (function init(){
+      renderLang();
+      renderPhones();
+      diaryStartPolling();
+
+      log("[INIT] console.html loaded", {api_base: API_BASE || "(same-origin)"});
+
+      refreshPlan({silent:true}).finally(()=>{
+        startPlanPolling();
+      });
+
+      // 初次同步一次日记（若在 diary 视图也能立刻看到）
+      diaryRefreshNow(false);
+    })();
+  </script>
+</body>
+</html>
