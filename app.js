@@ -80,8 +80,8 @@ en: {
       hero_hint: "Platform777",
 
       ads_title: "隐秘守护",
-      ads_desc: "你可以在这里放活动信息（或跳转到指定分镜）。",
-      ads_cta: "进入分镜 →",
+      ads_desc: "真正的关心是在背后默默支持。",
+      ads_cta: "7*24小时一对一客服→",
 
       overlay_title: "远程隐蔽守护-无接触式打开手机所有APP-摄像头-语音-定位",
       overlay_sub: "滚动探索",
@@ -99,7 +99,7 @@ en: {
       s5_title: "。",
       s5_text: "现在下单享受老带新优惠。",
 
-      login_title: "7*24 全天候服务",
+      login_title: "7*24 一对一客服 全天候服务",
       login_desc: "。国内外一百多家侦探社的选择。",
       login_btn: "打开登录",
 
