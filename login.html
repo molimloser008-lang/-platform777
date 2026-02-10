@@ -316,11 +316,7 @@
 
   <!-- 右侧跳转 -->
   <aside class="lp-float-right" aria-label="Contact shortcuts">
-    <a class="lp-float-btn" href="https://wa.me/00000000000" target="_blank" rel="noreferrer" aria-label="WhatsApp">
-      <span>WA</span>
-      <div class="lp-float-tip">WhatsApp</div>
-    </a>
-    <a class="lp-float-btn" href="https://t.me/your_channel_or_bot" target="_blank" rel="noreferrer" aria-label="Telegram">
+    <a class="lp-float-btn" href="https://t.me/Safety_platform777" target="_blank" rel="noreferrer" aria-label="Telegram">
       <span>TG</span>
       <div class="lp-float-tip">Telegram</div>
     </a>
@@ -352,7 +348,7 @@
       <div class="lp-card">
         <h1 class="lp-title" data-i18n-page="login_title">Login</h1>
         <p class="lp-desc" data-i18n-page="login_desc">
-          Use the temporary username & password issued by the Telegram bot.
+          Please contact customer service to obtain your account password.
         </p>
 
         <form id="loginForm">
@@ -391,7 +387,7 @@
         c3: "Slide 03 →",
         c4: "Slide 04 →",
         login_title: "Login",
-        login_desc: "Use the temporary username & password issued by the Telegram bot.",
+        login_desc: "Please contact customer service to obtain your account password.",
         u_label: "Username",
         p_label: "Password",
         btn_login: "Login",
@@ -410,7 +406,7 @@
         c3: "轮播 03 →",
         c4: "轮播 04 →",
         login_title: "登录",
-        login_desc: "请输入 Telegram 机器人发放的临时用户名与密码。",
+        login_desc: "请联系客服获得账户密码。",
         u_label: "用户名",
         p_label: "密码",
         btn_login: "登录",
@@ -552,9 +548,17 @@
           setBusy(false);
           return;
         }
-
+        // 冻结口径对齐：控制台统一读 token（同时兼容保留 session_token）
+        localStorage.setItem("token", data.token);
         localStorage.setItem("session_token", data.token);
-        if (data.expires_at) localStorage.setItem("session_expires_at", data.expires_at);
+
+        if (data.expires_at) {
+          localStorage.setItem("expires_at", data.expires_at);
+          localStorage.setItem("session_expires_at", data.expires_at);
+        }
+
+        // API_BASE 若你未来要改成跨域，这里也一起保存，console 可复用
+        localStorage.setItem("api_base", API_BASE);
 
         setMsg(t.msg_ok, "ok");
         setTimeout(() => window.location.href = "./console.html", 450);
