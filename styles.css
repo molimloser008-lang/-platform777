@@ -392,30 +392,43 @@ button{ font: inherit; color: inherit; background: transparent; border: none; cu
 .ads-link{ font-size: 13px; opacity: .9; }
 .ads-link:hover{ opacity: 1; text-decoration: underline; }
 
-/* Slides container */
+/* Slides container (Scheme A: page scroll + sticky stacking) */
 .slides-wrap{
   position: relative;
   background: #0b0b0b;
-}
-.slides{
-  height: 100vh;
-  overflow-y: auto;
-  scroll-snap-type: y mandatory;
-  scroll-behavior: smooth;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
-}
-.slides::-webkit-scrollbar{ width: 0; height: 0; }
 
+  /* 关键：给页面提供足够滚动距离
+     默认 5 屏；JS 会自动覆盖为真实屏数 */
+  --slides-count: 5;
+  min-height: calc(var(--slides-count) * 100vh);
+}
+
+/* 关键：不再做“内部滚动盒子” */
+.slides{
+  height: auto;
+  overflow: visible;
+  scroll-snap-type: none;
+  overscroll-behavior: auto;
+  scrollbar-width: auto;
+}
+.slides::-webkit-scrollbar{ width: initial; height: initial; }
+
+/* 关键：每一屏变成 sticky 叠层卡片 */
 .slide{
+  height: 100vh;
   min-height: 100vh;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  position: relative;
+  position: sticky;
+  top: 0;
+
   display: grid;
   align-items: center;
   isolation: isolate;
+
+  /* 让层级由 JS / nth-child 控制（JS 会写入 z-index） */
+  z-index: 1;
 }
+
+/* 背景保持你的原逻辑：data-bg -> --bgimg -> ::before */
 .slide::before{
   content:"";
   position: absolute;
